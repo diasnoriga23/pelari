@@ -46,6 +46,10 @@ class _MyAppState extends State<MyApp> {
   String id_dev = '';
   AndroidBatteryInfo? androidBatteryInfo;
   DateTime? createdAt;
+  bool containsStart = false;
+  bool containsStop = false;
+  bool tambahkan = false;
+  bool exportData = false;
 
   Future<bool> _connectTo(device) async {
     _serialData.clear();
@@ -102,6 +106,39 @@ class _MyAppState extends State<MyApp> {
     )).listen((data) {
       setState(() {
         _receivedData.add(data);
+
+        print('================');
+        print(_receivedData);
+        print('================');
+
+        print(data);
+        print('================');
+
+        containsStart = data.contains("START");
+        containsStop = data.contains("STOP");
+
+        if (containsStart == true) {
+          setState(() {
+            tambahkan = true;
+            // _startTambahData();
+          });
+          print('tambahkan nih ' + tambahkan.toString());
+        } else {
+          null;
+        }
+        if (containsStop == true) {
+          setState(() {
+            exportData = true;
+            _stopTambahData();
+          });
+          print('export Data nih ' + exportData.toString());
+        } else {
+          null;
+        }
+        tambahkan == false
+            ? null
+            : myList.add(
+                data.toString().replaceAll('*', createdAt.toString()) + ', *');
       });
     });
 
@@ -188,34 +225,37 @@ class _MyAppState extends State<MyApp> {
             androidBatteryInfo!.batteryLevel.toString() +
             ',' +
             '*';
-        _isSendingData == false
-            ? null
-            : myList.add('MKRRMP' +
-                id_dev +
-                '1222' +
-                ',' +
-                _location!.latitude.toString() +
-                ',' +
-                _location!.longitude.toString() +
-                ',' +
-                speeds.toStringAsFixed(6) +
-                ',' +
-                androidBatteryInfo!.batteryLevel.toString() +
-                '%' +
-                ',' +
-                createdAt.toString() +
-                ',' +
-                '*');
       });
     });
   }
 
   void _startSendingData() async {
     while (_isSendingData) {
-      // _receivedData.clear();
       await Future.delayed(Duration(seconds: delaySend));
       getBatteryData();
       _sendData(_dataPelari == '' ? '0' : _dataPelari);
+    }
+  }
+
+  // void _startTambahData() async {
+  //   while (tambahkan == true) {
+  //     print('Ada Start');
+
+  //     print('data list nih ' + myList.length.toString());
+  //     if (tambahkan == false) {
+  //       break; // Hentikan loop
+  //     }
+  //   }
+  // }
+
+  void _stopTambahData() async {
+    if (exportData == true) {
+      print('Ada Stop');
+      print('data list nih pas save' + myList.length.toString());
+      saveListToFile(myList);
+      print('save to android');
+      exportData = false;
+      tambahkan = false;
     }
   }
 
@@ -248,7 +288,7 @@ class _MyAppState extends State<MyApp> {
   List<String> myList = [];
   Future<void> saveListToFile(List<String> list) async {
     final externalDir = await getExternalStorageDirectory();
-    final filePath = '${externalDir!.path}/file.txt';
+    final filePath = '${externalDir!.path}/$createdAt.txt';
 
     final file = File(filePath);
     final sink = file.openWrite();
@@ -259,6 +299,7 @@ class _MyAppState extends State<MyApp> {
 
     await sink.close();
     print('List berhasil disimpan ke dalam file: $filePath');
+    myList.clear();
   }
 
   @override
@@ -270,7 +311,7 @@ class _MyAppState extends State<MyApp> {
       _getPorts();
     });
 
-    createdAt = DateTime.now().toLocal();
+    // createdAt = DateTime.now().toLocal();
     _getPorts();
   }
 

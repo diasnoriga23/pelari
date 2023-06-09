@@ -330,18 +330,6 @@ class _MyAppState extends State<MyApp> {
           appBar: AppBar(
             backgroundColor: Colors.blueGrey,
             title: const Text('Apps Pelari'),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                    child: Text('Save'),
-                    onPressed: myList.isEmpty
-                        ? null
-                        : () {
-                            saveListToFile(myList);
-                          }),
-              ),
-            ],
           ),
           body: SingleChildScrollView(
             child: Center(
